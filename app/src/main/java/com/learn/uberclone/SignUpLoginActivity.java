@@ -1,6 +1,7 @@
 package com.learn.uberclone;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -17,6 +18,7 @@ import com.parse.ParseAnonymousUtils;
 import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
 
 import org.apache.commons.lang3.StringUtils;
@@ -103,7 +105,18 @@ public class SignUpLoginActivity extends AppCompatActivity implements View.OnCli
     private void checkUserAlreadyLoggedIn() {
         // Check whether user already signed in or not
         if (ParseUser.getCurrentUser() != null) {
-            ParseUser.logOutInBackground();
+            // ParseUser.logOutInBackground();
+            transitionToPassengerActivity();
+        }
+    }
+
+    private void transitionToPassengerActivity() {
+        if (ParseUser.getCurrentUser() != null) {
+            if (ParseUser.getCurrentUser().get("as").equals("Passenger")) {
+                Intent intent = new Intent(SignUpLoginActivity.this, PassengerActivity.class);
+                startActivity(intent);
+                finish();
+            }
         }
     }
 
@@ -157,6 +170,7 @@ public class SignUpLoginActivity extends AppCompatActivity implements View.OnCli
                                 "Signed up",
                                 Toast.LENGTH_LONG)
                                 .show();
+                        transitionToPassengerActivity();
                     }
                 }
             });
@@ -174,6 +188,7 @@ public class SignUpLoginActivity extends AppCompatActivity implements View.OnCli
                                 "User logged in",
                                 Toast.LENGTH_LONG)
                                 .show();
+                        transitionToPassengerActivity();
                     }
                 }
             });
@@ -193,13 +208,18 @@ public class SignUpLoginActivity extends AppCompatActivity implements View.OnCli
                     @Override
                     public void done(ParseUser user, ParseException e) {
                         if (user != null && e == null) {
+                            dialog.dismiss();
                             Toast.makeText(SignUpLoginActivity.this,
                                     "We have an anonymous user",
                                     Toast.LENGTH_SHORT)
                                 .show();
-                            user.put("as", StringUtils.capitalize(edtSignUp_DriverPassenger.getText().toString()));
-                            user.saveInBackground();
-                            dialog.dismiss();
+                            user.put("as", StringUtils.capitalize(edtSignUp_DriverPassenger.getText().toString().toLowerCase()));
+                            user.saveInBackground(new SaveCallback() {
+                                @Override
+                                public void done(ParseException e) {
+                                    transitionToPassengerActivity();
+                                }
+                            });
                         }
                     }
                 });
