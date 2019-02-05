@@ -14,6 +14,7 @@ import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.parse.LogInCallback;
+import com.parse.Parse;
 import com.parse.ParseAnonymousUtils;
 import com.parse.ParseException;
 import com.parse.ParseInstallation;
@@ -107,13 +108,24 @@ public class SignUpLoginActivity extends AppCompatActivity implements View.OnCli
         if (ParseUser.getCurrentUser() != null) {
             // ParseUser.logOutInBackground();
             transitionToPassengerActivity();
+            transitionToDriverRequestListActivity();
         }
     }
 
     private void transitionToPassengerActivity() {
         if (ParseUser.getCurrentUser() != null) {
-            if (ParseUser.getCurrentUser().get("as").equals("Passenger")) {
+            if (ParseUser.getCurrentUser().get("as").toString().toUpperCase().equals("PASSENGER")) {
                 Intent intent = new Intent(SignUpLoginActivity.this, PassengerActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        }
+    }
+
+    private void transitionToDriverRequestListActivity() {
+        if (ParseUser.getCurrentUser() != null) {
+            if (ParseUser.getCurrentUser().get("as").toString().toUpperCase().equals("DRIVER")) {
+                Intent intent = new Intent(this, DriverRequestListActivity.class);
                 startActivity(intent);
                 finish();
             }
@@ -171,6 +183,7 @@ public class SignUpLoginActivity extends AppCompatActivity implements View.OnCli
                                 Toast.LENGTH_LONG)
                                 .show();
                         transitionToPassengerActivity();
+                        transitionToDriverRequestListActivity();
                     }
                 }
             });
@@ -182,13 +195,26 @@ public class SignUpLoginActivity extends AppCompatActivity implements View.OnCli
             ParseUser.logInInBackground(edtSignUp_Username.getText().toString(), edtSignUp_Password.getText().toString(), new LogInCallback() {
                 @Override
                 public void done(ParseUser user, ParseException e) {
-                    if (user != null && e == null) {
-                        dialog.dismiss();
-                        Toast.makeText(SignUpLoginActivity.this,
-                                "User logged in",
-                                Toast.LENGTH_LONG)
+                    dialog.dismiss();
+                    if (e == null) {
+                        if (user != null) {
+                            Toast.makeText(SignUpLoginActivity.this,
+                                    "User logged in",
+                                    Toast.LENGTH_LONG)
                                 .show();
-                        transitionToPassengerActivity();
+                            transitionToPassengerActivity();
+                            transitionToDriverRequestListActivity();
+                        } else {
+                            Toast.makeText(SignUpLoginActivity.this,
+                                    "Error:" + e.getMessage(),
+                                    Toast.LENGTH_SHORT)
+                                .show();
+                        }
+                    } else {
+                        Toast.makeText(SignUpLoginActivity.this,
+                                "Error:" + e.getMessage(),
+                                Toast.LENGTH_SHORT)
+                                .show();
                     }
                 }
             });
@@ -218,6 +244,7 @@ public class SignUpLoginActivity extends AppCompatActivity implements View.OnCli
                                 @Override
                                 public void done(ParseException e) {
                                     transitionToPassengerActivity();
+                                    transitionToDriverRequestListActivity();
                                 }
                             });
                         }
